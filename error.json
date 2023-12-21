@@ -1,0 +1,30 @@
+{
+  "BaseResponse": { "Ret": 1, "ErrMsg": "" },
+  "AddMsgCount": 0,
+  "AddMsgList": [],
+  "ModContactCount": 0,
+  "ModContactList": [],
+  "DelContactCount": 0,
+  "DelContactList": [],
+  "ModChatRoomMemberCount": 0,
+  "ModChatRoomMemberList": [],
+  "Profile": {
+    "BitFlag": 0,
+    "UserName": { "Buff": "" },
+    "NickName": { "Buff": "" },
+    "BindUin": 0,
+    "BindEmail": { "Buff": "" },
+    "BindMobile": { "Buff": "" },
+    "Status": 0,
+    "Sex": 0,
+    "PersonalCard": 0,
+    "Alias": "",
+    "HeadImgUpdateFlag": 0,
+    "HeadImgUrl": "",
+    "Signature": ""
+  },
+  "ContinueFlag": 0,
+  "SyncKey": { "Count": 0, "List": [] },
+  "SKey": "",
+  "SyncCheckKey": { "Count": 0, "List": [] }
+}

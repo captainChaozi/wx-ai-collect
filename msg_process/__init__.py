@@ -99,7 +99,7 @@ class MsgProcess:
         elif wechat_data.get('MsgType') == 1:
             msg = wechat_data.get('Content')
             url = ''
-            pattern = r'https?://\S+|\b(?:[a-z0-9-]+\.)+[a-z]{2,}\b'
+            pattern = r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+'
             urls = re.findall(pattern, msg)
             if urls:
                 url = urls[0]

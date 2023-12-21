@@ -220,11 +220,16 @@ class Message:
         if resp:
             # 直接调用 resp.json() 中文消息出现乱码
             data = json.loads(resp.content.decode('utf-8'))
+            self.sync_key = data['SyncKey']
+
             if data['BaseResponse']['Ret'] == 0:
 
                 if data['AddMsgList']:
                     for msg in data['AddMsgList']:
-                        self.process.process(msg)
+                        try:
+                            self.process.process(msg)
+                        except Exception as e:
+                            print(e)
 
                         # with open('msg.json', 'w') as f:
                         #     json.dump(msg, f)
@@ -232,8 +237,8 @@ class Message:
                         # if msg['MsgType'] == 1:
                         #     # 文本消息
                         #     print(msg['Content'])
-                    self.sync_key = data['SyncKey']
             else:
+                json.dump(data, open('error.json', 'w'))
                 raise ValueError("Webwxsync failed")
 
     def wait_msg(self):

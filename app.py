@@ -19,7 +19,7 @@ scheduler.init_app(app)
 scheduler.start()
 
 
-@app.route('/')
+@app.route('/api/login')
 def home():
     filehelper = WXFilehelper()
     scheduler.add_job(id='job', func=filehelper.run,

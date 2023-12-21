@@ -1,13 +1,12 @@
 import requests
 import datetime
 import os
-import google.generativeai as genai
-from dotenv import load_dotenv
+import re
 from urllib.parse import quote_plus
-
+from dotenv import load_dotenv
+from msg_process.llm_chains import url_ask_google_genai, msg_ask_google_genai
 
 load_dotenv()
-genai.configure(api_key=os.environ["GOOGLE_GEMINI_KEY"])
 
 
 class MsgProcess:
@@ -26,11 +25,9 @@ class MsgProcess:
         }
         response = requests.post(url, headers=headers, json=data)
         access_token = response.json()['tenant_access_token']
-        print(response.json())
         expire_time = datetime.timedelta(
             seconds=(response.json()['expire']-10)) + datetime.datetime.now()
         # 返回token 和过期具体时间
-        print(access_token, expire_time)
         return access_token, expire_time
 
     @property
@@ -39,7 +36,7 @@ class MsgProcess:
             self._lark_token_tmp = self._tenenant_access_token()
         return self._lark_token_tmp[0]
 
-    def create_text_block(self, document_id,  block_type, msg='', url=''):
+    def create_text_block(self, document_id,  block_type, msg='', text_url=''):
         # 创建文档块
 
         block_id = document_id
@@ -49,12 +46,12 @@ class MsgProcess:
             'Authorization': f'Bearer {self.lark_token}'
         }
         text_element_style = {}
-        if url:
+        if text_url:
             text_element_style = {
-                "link": {"url": quote_plus(url)}
+                "link": {"url": quote_plus(text_url)}
             }
-        if block_type == 5:
-            text_type = "heading3"
+        if block_type == 4:
+            text_type = "heading2"
         elif block_type == 22:
             text_type = "driver"
         else:
@@ -81,58 +78,73 @@ class MsgProcess:
                 }
             ]
         }
-        requests.post(url, headers=headers, json=data)
+        if text_type == 'driver':
+            data = {
+                "index": 0,
+                "children": [
+                    {
+                        "block_type": 22,
+                        "divider": {
+                        }
+                    }
+                ]
+            }
+        res = requests.post(url, headers=headers, json=data)
 
     def process(self, wechat_data):
 
         if wechat_data.get('MsgType') == 49 and wechat_data.get('AppMsgType') == 5:
-            title = wechat_data.get('FileName')
+            msg = wechat_data.get('FileName')
             url = wechat_data.get('Url')
         elif wechat_data.get('MsgType') == 1:
-            title = wechat_data.get('Content')
+            msg = wechat_data.get('Content')
             url = ''
+            pattern = r'https?://\S+|\b(?:[a-z0-9-]+\.)+[a-z]{2,}\b'
+            urls = re.findall(pattern, msg)
+            if urls:
+                url = urls[0]
+
         else:
             return
-
-        # openai 进行分类
-        ai_process_data = self.classify(title=title, url=url)
+        # print(msg, url)
+        if url:
+            ai_process_data = url_ask_google_genai(msg=msg, url=url)
+        else:
+            ai_process_data = msg_ask_google_genai(msg)
+        print(ai_process_data)
 
         # 保存到飞书
         self.save_feishu(ai_process_data)
 
     # 分类
 
-    def classify(self, title, url) -> dict:
-
-        prompt = f"标题：{title}\n链接：{url},请访问这个链接，并且给出摘要"
-
-        model = genai.GenerativeModel('gemini-pro')
-
-        response = model.generate_content(prompt)
-        print(response.text)  # cold.
-
     def save_feishu(self, ai_process_data):
-        document_id = ai_process_data['document_id']
-        title = ai_process_data['title']
+        document_id = ai_process_data.get('document_id')
+        title = ai_process_data.get('title')
+        msg = ai_process_data.get('msg')
         url = ai_process_data.get('url')
-        summary = ai_process_data['summary']
-        tags = ai_process_data['tags']
+        summary = ai_process_data.get('summary')
+        tags = ai_process_data.get('tags')
         self.create_text_block(document_id=document_id, block_type=22)
-        for tag in tags:
-            self.create_text_block(
-                document_id=document_id, block_type=5, msg=tag)
+
+        self.create_text_block(
+            document_id=document_id, block_type=2, msg='标签: '+','.join(tags))
         self.create_text_block(document_id=document_id,
-                               block_type=22, msg=summary)
+                               block_type=2, msg='摘要: '+summary)
+
+        if msg != title:
+            self.create_text_block(
+                document_id=document_id, block_type=2, msg=msg)
 
         if url:
             self.create_text_block(
-                document_id=document_id, block_type=5, msg=title, url=url)
+                document_id=document_id, block_type=4, msg=title, text_url=url)
         else:
             self.create_text_block(
-                document_id=document_id, block_type=5, msg=title)
+                document_id=document_id, block_type=4, msg=title)
 
 
 if __name__ == '__main__':
     msg_process = MsgProcess()
-    msg_process.classify(
-        title='SEO 竞争策略分享', url='https://mp.weixin.qq.com/s/ILzpMWW8M4ELj66Bfh8P7w')
+    msg_process.create_text_block(
+        document_id='Fyk0wohUMi01MwksjZ0cqRcinYb', block_type=22)

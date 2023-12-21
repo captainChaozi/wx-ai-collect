@@ -1,22 +1,18 @@
-import os
 import json
 import threading
-
 import pathlib
-
 import hashlib
 import requests
-from requests.exceptions import Timeout
-from requests_toolbelt import MultipartEncoder
-
-from retry.api import retry_call
-
 import time
 import re
 import random
-
+from requests.exceptions import Timeout
+from requests_toolbelt import MultipartEncoder
+from retry.api import retry_call
 from io import BytesIO
 from PIL import Image
+from msg_process import MsgProcess
+
 
 # 取消 SSL 警告
 requests.packages.urllib3.disable_warnings()
@@ -56,6 +52,7 @@ class Message:
         self.username_hash = None
 
         self.wx_req = WXRequest()
+        self.process = MsgProcess()
 
     def generate_message_id(self):
         """生成消息 id"""
@@ -224,15 +221,17 @@ class Message:
             # 直接调用 resp.json() 中文消息出现乱码
             data = json.loads(resp.content.decode('utf-8'))
             if data['BaseResponse']['Ret'] == 0:
-                
+
                 if data['AddMsgList']:
                     for msg in data['AddMsgList']:
-                        with open('msg.json', 'w') as f:
-                            json.dump(msg, f)
+                        self.process.process(msg)
 
-                        if msg['MsgType'] == 1:
-                            # 文本消息
-                            print(msg['Content'])
+                        # with open('msg.json', 'w') as f:
+                        #     json.dump(msg, f)
+
+                        # if msg['MsgType'] == 1:
+                        #     # 文本消息
+                        #     print(msg['Content'])
                     self.sync_key = data['SyncKey']
             else:
                 raise ValueError("Webwxsync failed")
@@ -413,7 +412,6 @@ class WXFilehelper:
         """
         resp = self.wx_req.fetch(f'{WX_LOGIN_HOST}/qrcode/{uuid}')
         if resp:
-            print(resp.content)
             image = Image.open(BytesIO(resp.content))
             image.save('static/qrcode.png')
 

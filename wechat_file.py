@@ -224,10 +224,12 @@ class Message:
             # 直接调用 resp.json() 中文消息出现乱码
             data = json.loads(resp.content.decode('utf-8'))
             if data['BaseResponse']['Ret'] == 0:
+                
                 if data['AddMsgList']:
                     for msg in data['AddMsgList']:
                         with open('msg.json', 'w') as f:
-                            f.write(json.dumps(msg, ensure_ascii=False))
+                            json.dump(msg, f)
+
                         if msg['MsgType'] == 1:
                             # 文本消息
                             print(msg['Content'])
@@ -364,7 +366,6 @@ class WXFilehelper:
         if not self.uuid:
             self.uuid = self.__generate_QRLogin_uuid()
             self.__generate_QR_code(self.uuid)
-
 
         # self.message.send_msg("你好")
         # self.message.send_msg(file_path="/Users/zzzzls/Desktop/desk.png")

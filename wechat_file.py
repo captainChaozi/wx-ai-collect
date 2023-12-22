@@ -1,3 +1,4 @@
+import base64
 import json
 import threading
 import pathlib
@@ -369,7 +370,6 @@ class WXFilehelper:
         self.uuid = uuid
         if not self.uuid:
             self.uuid = self.__generate_QRLogin_uuid()
-            self.__generate_QR_code(self.uuid)
 
         # self.message.send_msg("你好")
         # self.message.send_msg(file_path="/Users/zzzzls/Desktop/desk.png")
@@ -411,14 +411,20 @@ class WXFilehelper:
                 r'window.QRLogin.uuid = "(.*?)";', resp.text)
             return uuid
 
-    def __generate_QR_code(self, uuid):
+    def get_qrcode(self):
         """
         生成 登录二维码
         """
-        resp = self.wx_req.fetch(f'{WX_LOGIN_HOST}/qrcode/{uuid}')
+        resp = self.wx_req.fetch(f'{WX_LOGIN_HOST}/qrcode/{self.uuid}')
         if resp:
             image = Image.open(BytesIO(resp.content))
-            image.save('static/qrcode.png')
+            image = image.convert('L')
+
+            # 保存处理后的图片到BytesIO对象
+            img_io = BytesIO()
+            image.save(img_io, 'JPEG', quality=70)
+            img_io.seek(0)
+            return img_io
 
     def __check_login_status(self, uuid):
         """

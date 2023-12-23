@@ -54,7 +54,7 @@ def get_title(msg):
 
 
 def url_ask_google_genai(msg, url):
-    wiki_items = CONFIG.get('wiki').get('items')
+    wiki_items = CONFIG.get('docs')
     item_names = ','.join(["["+item.get('name')+"]" for item in wiki_items])
 
     template = """ 你是一位专业的信息分类助手，擅长对信息进行分类，打标签，摘要。
@@ -105,7 +105,7 @@ def url_ask_google_genai(msg, url):
 
 
 def msg_ask_google_genai(msg):
-    wiki_items = CONFIG.get('wiki').get('items')
+    wiki_items = CONFIG.get('docs')
     item_names = ','.join(["["+item.get('name')+"]" for item in wiki_items])
 
     template = """ 你是一位专业的信息分类助手，擅长对信息进行分类，打标签，摘要。

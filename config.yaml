@@ -1,15 +1,13 @@
-wiki:
-  id: FZp8wvXhuiu9YtkmAgfcAuVEnRe
-  items:
-    - name: 人工智能
-      id: KvLado1XOoMDz3x4Ssncj6QAnrb
-    - name: 独立开发
-      id: ZG0KdjxWaoqCOFxXZU8cJygQn4d
-    - name: 编程技术
-      id: XZm7dlNOIoL3i1xEXojcW5VfnBb
-    - name: 赚钱商机
-      id: VBVCdrpiOoPuLbxNLiMcJh8Unvd
-    - name: 人生杂谈
-      id: UzRAdpN4NohoXMxU2Mhcr6PZngb
-    - name: 其他内容
-      id: HugFd6gpHopDpCxpCI7caXqQnkZ
+docs:
+  - name: 人工智能
+    id: KvLado1XOoMDz3x4Ssncj6QAnrb
+  - name: 独立开发
+    id: ZG0KdjxWaoqCOFxXZU8cJygQn4d
+  - name: 编程技术
+    id: XZm7dlNOIoL3i1xEXojcW5VfnBb
+  - name: 赚钱商机
+    id: VBVCdrpiOoPuLbxNLiMcJh8Unvd
+  - name: 人生杂谈
+    id: UzRAdpN4NohoXMxU2Mhcr6PZngb
+  - name: 其他内容
+    id: HugFd6gpHopDpCxpCI7caXqQnkZ

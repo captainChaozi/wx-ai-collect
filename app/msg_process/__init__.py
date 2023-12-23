@@ -4,7 +4,7 @@ import os
 import re
 from urllib.parse import quote_plus
 from dotenv import load_dotenv
-from msg_process.llm_chains import url_ask_google_genai, msg_ask_google_genai
+from app.msg_process.llm_chains import url_ask_google_genai, msg_ask_google_genai
 
 load_dotenv()
 

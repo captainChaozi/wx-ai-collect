@@ -1,23 +1,32 @@
 import os
-import datetime
 from flask import Flask, send_file
-from wechat_file import WXFilehelper
-from flask_apscheduler import APScheduler
+from app.wechat_file import WXFilehelper
+from app.celery_task import celery_init_app
 from flask_httpauth import HTTPBasicAuth
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
+app.config.from_mapping(
+    CELERY=dict(
+        broker_url=os.environ.get('REDIS_URL', "redis://localhost:6379/0"),
+        result_backend=os.environ.get(
+            'REDIS_URL', "redis://localhost:6379/0"),
+        task_ignore_result=True,
+        broker_connection_retry_on_startup=True,
+    ),
+)
+celery_app = celery_init_app(app)
 
 
-class Config:
-    SCHEDULER_API_ENABLED = True
+@celery_app.task
+def receive_msg(uuid):
+    # 长时间运行的任务
+    filehelper = WXFilehelper(uuid=uuid)
+    filehelper.run()
 
 
 app = Flask(__name__)
-app.config.from_object(Config())
 auth = HTTPBasicAuth()
-
-
 users = {
     os.environ.get('USER_NAME'): generate_password_hash(os.environ.get('PASSWORD'))
 }
@@ -32,20 +41,12 @@ def verify_password(username, password):
         return username
 
 
-scheduler = APScheduler()
-
-scheduler.init_app(app)
-scheduler.start()
-
-
 @app.route('/')
 @auth.login_required
 def home():
     filehelper = WXFilehelper()
     image = filehelper.get_qrcode()
-
-    scheduler.add_job(id='job', func=filehelper.run,
-                      trigger='date', run_date=datetime.datetime.now())
+    receive_msg.delay(filehelper.uuid)
     return send_file(image, mimetype='image/jpeg')
 
     # return render_template('index.html', image=image)

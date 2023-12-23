@@ -1,0 +1,45 @@
+version: '3.1'
+
+services:
+  redis:
+    image: redis:6
+    restart: always
+    expose:
+      - "6379"
+    ports:
+      - "10004:6379"
+    container_name: ai_collect_redis
+
+  api:
+    image: chaozi/wx-ai-collect:v1
+    restart: always
+    environment:
+      REDIS_URL: redis://ai_collect_redis:6379/0
+      LARK_APP_ID: ${LARK_APP_ID}
+      LARK_APP_SECRET: ${LARK_APP_SECRET}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      GOOGLE_GEMINI_PROXY: ${GOOGLE_GEMINI_PROXY}
+      USER_NAME: ${USER_NAME}
+      PASSWORD: ${PASSWORD}
+    expose:
+      - 80
+    ports:
+      - "10000:80"
+    container_name: ai_collect_api
+
+
+  celery:
+    image: chaozi/wx-ai-collect:v1
+    restart: always
+
+    environment:
+      REDIS_URL: redis://ai_collect_redis:6379/0
+      RUN: celery
+      REDIS_URL: redis://ai_collect_redis:6379/0
+      LARK_APP_ID: ${LARK_APP_ID}
+      LARK_APP_SECRET: ${LARK_APP_SECRET}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      GOOGLE_GEMINI_PROXY: ${GOOGLE_GEMINI_PROXY}
+      USER_NAME: ${USER_NAME}
+      PASSWORD: ${PASSWORD}
+    container_name: ai_collect_celery

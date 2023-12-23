@@ -11,7 +11,7 @@ from requests_toolbelt import MultipartEncoder
 from retry.api import retry_call
 from io import BytesIO
 from PIL import Image
-from msg_process import MsgProcess
+from app.msg_process import MsgProcess
 
 
 # 取消 SSL 警告
@@ -194,7 +194,6 @@ class Message:
         }
         self.wx_req.update_headers({"mmweb_appid": "wx_webfilehelper"})
         resp = self.wx_req.fetch(url, params=params)
-        print(resp.text)
         if resp:
             retcode = Utils.match(
                 r'retcode:"(.*?)"', resp.text)

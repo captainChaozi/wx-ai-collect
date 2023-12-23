@@ -67,8 +67,13 @@ docs:
     id: HugFd6gpHopDpCxpCI7caXqQnkZ
 
 ```
+运行celery 跑后台任务
 
-运行,访问5000端口
+```bash
+celery -A  app.celery_app worker 
+```
+
+运行api,访问5000端口,可以进行扫码登录
 ```bash
 flask run # 或者python app.py
 ```
@@ -78,5 +83,7 @@ flask run # 或者python app.py
 
 
 ```bash
-docker run --name ai-collect --restare -v ${PWD}/.env:/app/.env ${PWD}/config.yaml:/app/config.yaml -p 8080:80 -d  chaozi/wx-ai-collect:v1
+git clone https://github.com/captainChaozi/wx-ai-collect.git
+cd wx-ai-collect
+docker-compose up -d 
 ```

@@ -1,5 +1,9 @@
 import yaml
-from langchain_google_genai import ChatGoogleGenerativeAI
+import requests
+import os
+from typing import Any, List, Optional
+from langchain.callbacks.manager import CallbackManagerForLLMRun
+from langchain_core.language_models.llms import LLM
 from langchain.chains import LLMRequestsChain, LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.output_parsers import StructuredOutputParser, ResponseSchema
@@ -9,8 +13,37 @@ load_dotenv()
 CONFIG = yaml.load(open('config.yaml', 'r'), Loader=yaml.FullLoader)
 
 
+class CustomGeminiLLM(LLM):
+
+    @property
+    def _llm_type(self) -> str:
+        return "custom"
+
+    def _call(
+        self,
+        prompt: str,
+        stop: Optional[List[str]] = None,
+        run_manager: Optional[CallbackManagerForLLMRun] = None,
+        **kwargs: Any,
+    ) -> str:
+        if stop is not None:
+            raise ValueError("stop kwargs are not permitted.")
+        base_url = os.environ.get(
+            'GOOGLE_GEMINI_PROXY', 'https://generativelanguage.googleapis.com')
+        url = f"{base_url}/v1beta/models/gemini-pro:generateContent?key={os.environ.get('GOOGLE_API_KEY')}"
+        data = {"contents": [
+            {"parts": [{"text": prompt}]}
+        ]
+        }
+        headers = {'Content-Type': 'application/json'}
+        response = requests.post(url, json=data, headers=headers)
+        res_data = response.json()
+        res = res_data['candidates'][0]['content']['parts'][0]['text']
+        return res
+
+
 def get_title(msg):
-    llm = ChatGoogleGenerativeAI(model='gemini-pro')
+    llm = CustomGeminiLLM(model='gemini-pro',)
     prompt = PromptTemplate(
         input_variables=["query"],
         template="给这段文字起一个简短的标题,要少于60个汉字 文字:<<{msg}>>",
@@ -54,7 +87,7 @@ def url_ask_google_genai(msg, url):
         partial_variables={"format_instructions": format_instructions})
 
     # print(prompt)
-    llm = ChatGoogleGenerativeAI(model='gemini-pro')
+    llm = CustomGeminiLLM(model='gemini-pro')
     chain = LLMRequestsChain(llm_chain=LLMChain(llm=llm, prompt=prompt))
 
     output = chain({'message': msg, 'url': url}).get('output')
@@ -102,7 +135,7 @@ def msg_ask_google_genai(msg):
         partial_variables={"format_instructions": format_instructions})
 
     # print(prompt)
-    llm = ChatGoogleGenerativeAI(model='gemini-pro')
+    llm = CustomGeminiLLM(model='gemini-pro')
     chain = LLMChain(llm=llm, prompt=prompt)
 
     output = chain({'message': msg}).get('text')

@@ -1,4 +1,3 @@
-import base64
 import json
 import threading
 import pathlib
@@ -195,6 +194,7 @@ class Message:
         }
         self.wx_req.update_headers({"mmweb_appid": "wx_webfilehelper"})
         resp = self.wx_req.fetch(url, params=params)
+        print(resp.text)
         if resp:
             retcode = Utils.match(
                 r'retcode:"(.*?)"', resp.text)
@@ -221,7 +221,8 @@ class Message:
         if resp:
             # 直接调用 resp.json() 中文消息出现乱码
             data = json.loads(resp.content.decode('utf-8'))
-            self.sync_key = data['SyncKey']
+            if data['SyncKey']:
+                self.sync_key = data['SyncKey']
 
             if data['BaseResponse']['Ret'] == 0:
 
@@ -238,17 +239,20 @@ class Message:
                         # if msg['MsgType'] == 1:
                         #     # 文本消息
                         #     print(msg['Content'])
-            else:
-                json.dump(data, open('error.json', 'w'))
-                raise ValueError("Webwxsync failed")
+            # else:
+            #     json.dump(data, open('error.json', 'w'))
+            #     raise ValueError("Webwxsync failed")
 
     def wait_msg(self):
         """监听消息"""
         while True:
-            has_msg = self.sync_msg_check()
-            if has_msg:
+            is_login = self.sync_msg_check()
+            if is_login:
                 self.receive_msg()
-            time.sleep(0.3)
+            else:
+                print("Login 退出登录")
+                return
+            time.sleep(1)
 
     def __str__(self):
         return f"""uin: {self.uin}

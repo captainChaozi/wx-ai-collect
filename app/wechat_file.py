@@ -213,7 +213,9 @@ class Message:
         params = {'sid': self.sid, 'skey': self.skey,
                   'pass_ticket': self.pass_ticket}
         json_data = {"BaseRequest": self.generate_base_request(),
-                     "SyncKey": self.sync_key}
+                     "SyncKey": self.sync_key,
+
+                     'rr': ~int(time.time()), }
 
         resp = self.wx_req.fetch(
             url, method="post", params=params, json=json_data)

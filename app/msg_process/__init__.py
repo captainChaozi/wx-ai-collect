@@ -123,8 +123,8 @@ class MsgProcess:
             text_element_style = {
                 "link": {"url": quote_plus(text_url)}
             }
-        if block_type == 4:
-            text_type = "heading2"
+        if block_type == 5:
+            text_type = "heading3"
         elif block_type == 22:
             text_type = "driver"
         else:
@@ -203,10 +203,10 @@ class MsgProcess:
         if image:
             self.create_image_block(document_id=document_id, image_url=image)
 
-        self.create_text_block(
-            document_id=document_id, block_type=2, msg='标签: '+','.join(tags))
+        # self.create_text_block(
+        #     document_id=document_id, block_type=2, msg='标签: '+','.join(tags))
         self.create_text_block(document_id=document_id,
-                               block_type=2, msg='摘要: '+summary)
+                               block_type=2, msg=summary)
 
         if msg != title:
             self.create_text_block(
@@ -214,10 +214,10 @@ class MsgProcess:
 
         if url:
             self.create_text_block(
-                document_id=document_id, block_type=4, msg=title, text_url=url)
+                document_id=document_id, block_type=5, msg=title, text_url=url)
         else:
             self.create_text_block(
-                document_id=document_id, block_type=4, msg=title)
+                document_id=document_id, block_type=5, msg=title)
 
 
 if __name__ == '__main__':

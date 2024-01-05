@@ -7,6 +7,10 @@ from langchain_core.language_models.llms import LLM
 from langchain.chains import LLMRequestsChain, LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.output_parsers import StructuredOutputParser, ResponseSchema
+from langchain_community.document_loaders import PlaywrightURLLoader
+from langchain_community.document_loaders import SeleniumURLLoader
+
+
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -57,12 +61,16 @@ def url_ask_google_genai(msg, url):
     wiki_items = CONFIG.get('docs')
     item_names = ','.join(["["+item.get('name')+"]" for item in wiki_items])
 
-    template = """ 你是一位专业的信息分类助手，擅长对信息进行分类，打标签，摘要。
-    下面是我的信息:
-    <<{message}>>
+    loader = PlaywrightURLLoader(
+        urls=[url], remove_selectors=["header", "footer"])
 
-    其中 链接的访问结果如下:
-    <<{requests_result}>>
+    data = loader.load()
+
+    url_content = data[0].page_content
+
+    template = """ 你是一位专业的信息整理专家，擅长对信息进行分类，打标签，拟标题。
+    下面是你要处理的信息:
+    <<{message}   链接的访问:"""+url_content+""">>
 
     你需要对这条信息进行 1.分类 2.打标签 3.摘要 并且严格按照指定的json格式返回给我
     {format_instructions}
@@ -70,11 +78,13 @@ def url_ask_google_genai(msg, url):
     """
     response_schemas = [
         ResponseSchema(
+            name="title", description="标题: 给出这段信息的标题,可以是原文的标题,也可以是根据内容拟定的标题,拟定标题的时候可以按照<<xx是xx,主要应用在xx方面'的格式>>"),
+        ResponseSchema(
             name="category", description="分类: 判断该条信息属于分类列表 " + item_names + " 中的那一项,返回的json的  value为对应的分类项,注意只返回分类列表中存在的分类"),
         ResponseSchema(
             name="tags", description="标签: 给出这个信息的三个标签"),
         ResponseSchema(
-            name="summary", description="摘要: 对这个信息按照要点进行摘要,字数在200个汉字内,主要解释“是什么”，“为什么”，“怎么做” 等问题"),
+            name="summary", description="摘要: 对这个信息按照要点进行摘要,字数在200个汉字内,解释清楚 ‘它是什么’，‘它的原理是什么’，‘它可以应用在那些方面’ 等问题"),
         ResponseSchema(
             name="image", description="图片: 链接的访问结果中，最能体现主题的图片的链接"),
 
@@ -84,25 +94,24 @@ def url_ask_google_genai(msg, url):
     format_instructions = output_parser.get_format_instructions()
     # print(format_instructions)
     prompt = PromptTemplate(
-        input_variables=["query", "requests_result"],
+        input_variables=["message"],
         template=template,
         partial_variables={"format_instructions": format_instructions})
 
-    # print(prompt)
     llm = CustomGeminiLLM(model='gemini-pro')
-    chain = LLMRequestsChain(llm_chain=LLMChain(llm=llm, prompt=prompt))
+    chain = LLMChain(llm=llm, prompt=prompt)
 
-    output = chain({'message': msg, 'url': url}).get('output')
+    output = chain({'message': msg}).get('text')
     res = output_parser.parse(output)
     for i in wiki_items:
         if i['name'] == res['category']:
             res['document_id'] = i['id']
     res['url'] = url
     res['msg'] = msg
-    if len(msg) > 60:
-        res['title'] = get_title(msg)
-    else:
-        res['title'] = msg
+    # if len(msg) > 60:
+    #     res['title'] = get_title(msg)
+    # else:
+    #     res['title'] = msg
     return res
 
 
@@ -132,7 +141,7 @@ def msg_ask_google_genai(msg):
     format_instructions = output_parser.get_format_instructions()
     # print(format_instructions)
     prompt = PromptTemplate(
-        input_variables=["query"],
+        input_variables=["message"],
         template=template,
         partial_variables={"format_instructions": format_instructions})
 

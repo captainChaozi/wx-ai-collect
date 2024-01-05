@@ -179,7 +179,6 @@ class MsgProcess:
 
         else:
             return
-        # print(msg, url)
         if url:
             ai_process_data = url_ask_google_genai(msg=msg, url=url)
         else:

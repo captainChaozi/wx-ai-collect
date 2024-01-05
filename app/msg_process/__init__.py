@@ -1,10 +1,13 @@
+import time
 import requests
 import datetime
 import os
 import re
+import uuid
 from urllib.parse import quote_plus
 from dotenv import load_dotenv
 from app.msg_process.llm_chains import url_ask_google_genai, msg_ask_google_genai
+from requests_toolbelt import MultipartEncoder
 
 load_dotenv()
 
@@ -35,6 +38,76 @@ class MsgProcess:
         if self._lark_token_tmp is None or self._lark_token_tmp[1] < datetime.datetime.now():
             self._lark_token_tmp = self._tenenant_access_token()
         return self._lark_token_tmp[0]
+
+    def create_image_block(self, document_id, image_url):
+
+        # 随机文件名
+        filename = str(uuid.uuid4()) + '.jpg'
+
+        response = requests.get(image_url)
+        if 'image' not in response.headers.get('Content-Type', ''):
+            return
+
+        # 确保请求成功
+        if response.status_code == 200:
+            # 打开一个文件用于写入
+            with open(filename, 'wb') as file:
+                file.write(response.content)
+        # 创建图片块
+        block_id = document_id
+        url = f'https://open.feishu.cn/open-apis/docx/v1/documents/{document_id}/blocks/{block_id}/children'
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.lark_token}'
+        }
+        data = {
+            "index": 0,
+            "children": [
+                {
+                    "block_type": 27,
+                    "image": {
+                        "token": ""
+                    }
+                }
+            ]
+        }
+        res = requests.post(url, headers=headers, json=data)
+
+        image_block_id = res.json()['data']['children'][0]['block_id']
+
+        # 上传图片
+        file_size = os.path.getsize(filename)
+        url = "https://open.feishu.cn/open-apis/drive/v1/medias/upload_all"
+        form = {'file_name': filename,
+                'parent_type': 'docx_image',
+                'parent_node': image_block_id,
+                'size': str(file_size),
+                'file': (open(filename, 'rb'))}
+        multi_form = MultipartEncoder(form)
+        headers = {
+            # 获取tenant_access_token, 需要替换为实际的token
+            'Content-Type': 'multipart/form-data',
+
+            'Authorization': f'Bearer {self.lark_token}'
+        }
+        headers['Content-Type'] = multi_form.content_type
+        response = requests.request(
+            "POST", url, headers=headers, data=multi_form)
+        media_id = response.json()['data']['file_token']
+        # 更新图片块
+        url = f'https://open.feishu.cn/open-apis/docx/v1/documents/{document_id}/blocks/{image_block_id}'
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {self.lark_token}'
+        }
+        data = {
+            "replace_image": {
+                "token": media_id  # 图片素材 ID
+            }
+        }
+        res = requests.patch(url, headers=headers, json=data)
+
+        os.remove(filename)
 
     def create_text_block(self, document_id,  block_type, msg='', text_url=''):
         # 创建文档块
@@ -125,7 +198,11 @@ class MsgProcess:
         url = ai_process_data.get('url')
         summary = ai_process_data.get('summary')
         tags = ai_process_data.get('tags')
+        image = ai_process_data.get('image')
         self.create_text_block(document_id=document_id, block_type=22)
+
+        if image:
+            self.create_image_block(document_id=document_id, image_url=image)
 
         self.create_text_block(
             document_id=document_id, block_type=2, msg='标签: '+','.join(tags))
@@ -146,5 +223,5 @@ class MsgProcess:
 
 if __name__ == '__main__':
     msg_process = MsgProcess()
-    msg_process.create_text_block(
-        document_id='Fyk0wohUMi01MwksjZ0cqRcinYb', block_type=22)
+    msg_process.create_image_block(
+        image_url="https://i.ytimg.com/vi/Dl53poAkbZo/maxresdefault.jpg", document_id='KvLado1XOoMDz3x4Ssncj6QAnrb')

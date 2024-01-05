@@ -75,6 +75,8 @@ def url_ask_google_genai(msg, url):
             name="tags", description="标签: 给出这个信息的三个标签"),
         ResponseSchema(
             name="summary", description="摘要: 对这个信息按照要点进行摘要,字数在200个汉字内,主要解释“是什么”，“为什么”，“怎么做” 等问题"),
+        ResponseSchema(
+            name="image", description="图片: 链接的访问结果中，最能体现主题的图片的链接"),
 
     ]
     output_parser = StructuredOutputParser.from_response_schemas(

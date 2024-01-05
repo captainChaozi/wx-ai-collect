@@ -198,12 +198,16 @@ class MsgProcess:
         msg = ai_process_data.get('msg')
         url = ai_process_data.get('url')
         summary = ai_process_data.get('summary')
-        tags = ai_process_data.get('tags')
         image = ai_process_data.get('image')
+        inspire = ai_process_data.get('inspire')
         self.create_text_block(document_id=document_id, block_type=22)
 
         if image:
             self.create_image_block(document_id=document_id, image_url=image)
+
+        if inspire:
+            self.create_text_block(
+                document_id=document_id, block_type=2, msg=inspire)
 
         # self.create_text_block(
         #     document_id=document_id, block_type=2, msg='标签: '+','.join(tags))

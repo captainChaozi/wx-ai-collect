@@ -81,7 +81,9 @@ def url_ask_google_genai(msg, url):
         ResponseSchema(
             name="category", description="分类: 判断该条信息属于分类列表 " + item_names + " 中的那一项,返回的json的  value为对应的分类项,注意只返回分类列表中存在的分类"),
         ResponseSchema(
-            name="summary", description="摘要: 对这个信息按照要点进行摘要,字数在200个汉字内,解释清楚 ‘它是什么’，‘它的原理是什么’，‘它可以应用在那些方面’ 等问题"),
+            name="summary", description="摘要: 对这个信息按照要点进行摘要,字数在500个字符内,解释清楚 ‘它是什么’，‘它的原理是什么’，‘它可以应用在那些方面’ 等问题"),
+        ResponseSchema(
+            name="inspire", description="一个IT或者AI行业从业者可以从这条信息中得到什么启发,有什么好处,获得什么,300个字符"),
         ResponseSchema(
             name="image", description="图片: 链接的访问结果中，最能体现主题的图片的链接"),
 

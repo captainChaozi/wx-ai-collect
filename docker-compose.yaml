@@ -14,7 +14,7 @@ services:
     image: chaozi/wx-ai-collect
     restart: always
     volumes:
-      - ./app:/app
+      - .:/app
     environment:
       REDIS_URL: redis://ai_collect_redis:6379/0
       LARK_APP_ID: ${LARK_APP_ID}
@@ -34,7 +34,7 @@ services:
     image: chaozi/wx-ai-collect
     restart: always
     volumes:
-      - ./app:/app
+      - .:/app
     environment:
       REDIS_URL: redis://ai_collect_redis:6379/0
       RUN: celery

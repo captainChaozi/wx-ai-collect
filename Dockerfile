@@ -1,11 +1,9 @@
-FROM chaozi/wx-ai-collect:v1
-
+FROM chaozi/wx-ai-collect
 WORKDIR /app
 
 COPY . /app
 
 RUN pip install -r requirements.txt
 
-RUN playwright install
 
 CMD ["sh", "docker_entry.sh"]

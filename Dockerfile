@@ -1,4 +1,4 @@
-FROM python:3.10-slim-buster
+FROM chaozi/wx-ai-collect:v1
 
 WORKDIR /app
 

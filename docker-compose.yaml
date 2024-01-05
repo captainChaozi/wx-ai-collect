@@ -11,7 +11,7 @@ services:
     container_name: ai_collect_redis
 
   api:
-    image: chaozi/wx-ai-collect:v1
+    image: chaozi/wx-ai-collect
     restart: always
     environment:
       REDIS_URL: redis://ai_collect_redis:6379/0
@@ -29,7 +29,7 @@ services:
 
 
   celery:
-    image: chaozi/wx-ai-collect:v1
+    image: chaozi/wx-ai-collect
     restart: always
 
     environment:

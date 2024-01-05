@@ -53,6 +53,8 @@ class MsgProcess:
             # 打开一个文件用于写入
             with open(filename, 'wb') as file:
                 file.write(response.content)
+        else:
+            return
         # 创建图片块
         block_id = document_id
         url = f'https://open.feishu.cn/open-apis/docx/v1/documents/{document_id}/blocks/{block_id}/children'

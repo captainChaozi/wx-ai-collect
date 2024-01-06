@@ -43,8 +43,10 @@ class MsgProcess:
 
         # 随机文件名
         filename = str(uuid.uuid4()) + '.jpg'
-
-        response = requests.get(image_url)
+        try:
+            response = requests.get(image_url)
+        except:
+            return
         if 'image' not in response.headers.get('Content-Type', ''):
             return
 

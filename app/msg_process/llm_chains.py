@@ -61,12 +61,21 @@ def url_ask_google_genai(msg, url):
     wiki_items = CONFIG.get('docs')
     item_names = ','.join(["["+item.get('name')+"]" for item in wiki_items])
 
-    loader = PlaywrightURLLoader(
-        urls=[url], remove_selectors=["header", "footer"])
+    retry = True
+    while retry:
+        try:
+            loader = PlaywrightURLLoader(
+                urls=[url], remove_selectors=["header", "footer"])
 
-    data = loader.load()
+            data = loader.load()
 
-    url_content = data[0].page_content.replace('{', '').replace('}', '')
+            url_content = data[0].page_content.replace(
+                '{', '').replace('}', '')
+            retry = False
+        except Exception as e:
+            print(e)
+            url_content = ''
+
     template = """ 你是一位专业的信息整理专家，擅长对信息进行分类，打标签，拟标题。
     下面是你要处理的信息:
     <<{message}   链接的访问:"""+url_content+""">>

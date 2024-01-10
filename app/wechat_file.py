@@ -365,12 +365,12 @@ class WXRequest:
             "allow_redirects": False,
         }
 
-        resp = self.session.request(
-            # method, url, params=params, data=data, json=json, timeout=timeout, allow_redirects=False, verify=False, proxies={'https': 'http://127.0.0.1:8888'})
-            method, url, params=params, data=data, json=json, timeout=timeout, allow_redirects=False)
+        # resp = self.session.request(
+        #     # method, url, params=params, data=data, json=json, timeout=timeout, allow_redirects=False, verify=False, proxies={'https': 'http://127.0.0.1:8888'})
+        #     method, url, params=params, data=data, json=json, timeout=timeout, allow_redirects=False)
 
-        retry_call(self.session.request, fkwargs=request_param,
-                   exceptions=Exception, tries=5, delay=1)
+        req = retry_call(self.session.request, fkwargs=request_param,
+                         exceptions=Exception, tries=5, delay=1)
         if resp and resp.status_code == requests.codes.ok:
             return resp
         else:

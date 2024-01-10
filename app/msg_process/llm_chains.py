@@ -62,7 +62,9 @@ def url_ask_google_genai(msg, url):
     item_names = ','.join(["["+item.get('name')+"]" for item in wiki_items])
 
     retry = True
-    while retry:
+    retry_count = 0
+    while retry and retry_count < 5:
+        retry_count += 1
         try:
             loader = PlaywrightURLLoader(
                 urls=[url], remove_selectors=["header", "footer"])

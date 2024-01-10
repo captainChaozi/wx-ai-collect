@@ -253,7 +253,7 @@ class Message:
             else:
                 print("Login 退出登录")
                 return
-            time.sleep(2)
+            time.sleep(1)
 
     def __str__(self):
         return f"""uin: {self.uin}
@@ -355,22 +355,18 @@ class WXRequest:
         return session
 
     def fetch(self, url, method="get", params=None, data=None, json=None, timeout=10):
-        request_param = {
-            "method": method,
-            "url": url,
-            "params": params,
-            "data": data,
-            "json": json,
-            "timeout": timeout,
-            "allow_redirects": False,
-        }
 
-        # resp = self.session.request(
-        #     # method, url, params=params, data=data, json=json, timeout=timeout, allow_redirects=False, verify=False, proxies={'https': 'http://127.0.0.1:8888'})
-        #     method, url, params=params, data=data, json=json, timeout=timeout, allow_redirects=False)
-
-        resp = retry_call(self.session.request, fkwargs=request_param,
-                          exceptions=Exception, tries=5, delay=1)
+        retry = True
+        retry_count = 0
+        while retry and retry_count < 5:
+            try:
+                retry_count += 1
+                resp = self.session.request(
+                    # method, url, params=params, data=data, json=json, timeout=timeout, allow_redirects=False, verify=False, proxies={'https': 'http://127.0.0.1:8888'})
+                    method, url, params=params, data=data, json=json, timeout=timeout, allow_redirects=False)
+                retry = False
+            except Exception as e:
+                print(e)
         if resp and resp.status_code == requests.codes.ok:
             return resp
         else:

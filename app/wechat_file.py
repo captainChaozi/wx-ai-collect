@@ -12,6 +12,7 @@ from retry.api import retry_call
 from io import BytesIO
 from PIL import Image
 from app.msg_process import MsgProcess
+from app.utils import post_feishu_webhook
 
 
 # 取消 SSL 警告
@@ -251,6 +252,7 @@ class Message:
             if is_login:
                 self.receive_msg()
             else:
+                post_feishu_webhook("微信登录失效")
                 print("Login 退出登录")
                 return
             time.sleep(1)

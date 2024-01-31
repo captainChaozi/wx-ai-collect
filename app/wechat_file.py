@@ -249,6 +249,7 @@ class Message:
         """监听消息"""
         while True:
             is_login = self.sync_msg_check()
+            # print(is_login)
             if is_login:
                 self.receive_msg()
             else:
